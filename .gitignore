@@ -1,30 +1,48 @@
 # Raw sequencing data
+data/
 *.fastq
 *.fastq.gz
 *.fq
 *.fq.gz
 
-# Large alignment files
+# Alignment files
+bam/
 *.bam
 *.bai
 *.sam
 
 # Variant files
+vcf/
 *.vcf
 *.vcf.gz
 *.bcf
 *.bcf.gz
 
+# Logs
+*.log
+*.errlog.txt
+wget-log*
+sample*.errlog.txt
+
+# Conda installer
+Miniconda3-*.sh
+
 # Python
 __pycache__/
 *.pyc
 
-# Conda/environment
-.env
+# Local ML files
+model/*.pkl
+model/*.joblib
 
-# OS
+# OS files
 .DS_Store
+  
+wget-log*
+sample*.errlog.txt
+results/*.json
+results/*.txt
+results/*.bam
+results/*.vcf*
 
-# Temporary files
-*.tmp
-*.log
+results/feature_table.csv

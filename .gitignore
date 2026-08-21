@@ -1,4 +1,4 @@
-# Raw sequencing data
+# WGS sequencing data
 data/
 *.fastq
 *.fastq.gz
@@ -19,30 +19,20 @@ vcf/
 *.bcf.gz
 
 # Logs
+wget-log*
 *.log
 *.errlog.txt
-wget-log*
-sample*.errlog.txt
 
 # Conda installer
 Miniconda3-*.sh
 
-# Python
+# Python cache
 __pycache__/
 *.pyc
 
-# Local ML files
-model/*.pkl
-model/*.joblib
-
-# OS files
-.DS_Store
-  
-wget-log*
-sample*.errlog.txt
-results/*.json
-results/*.txt
-results/*.bam
-results/*.vcf*
-
+# Local ML models
+*.pkl
+*.joblib
 results/feature_table.csv
+!results/
+!results/feature_table.csv

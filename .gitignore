@@ -1,0 +1,30 @@
+# Raw sequencing data
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+
+# Large alignment files
+*.bam
+*.bai
+*.sam
+
+# Variant files
+*.vcf
+*.vcf.gz
+*.bcf
+*.bcf.gz
+
+# Python
+__pycache__/
+*.pyc
+
+# Conda/environment
+.env
+
+# OS
+.DS_Store
+
+# Temporary files
+*.tmp
+*.log

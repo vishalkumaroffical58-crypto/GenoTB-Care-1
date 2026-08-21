@@ -1,0 +1,11 @@
+total_dr_variants,mutation_count,MUT_EBG00000313325_n.1401A>G,MUT_Rv0006_p.Asp94Ala,MUT_Rv0006_p.Asp94Gly,MUT_Rv0667_p.Ser450Leu,MUT_Rv0682_p.Lys43Arg,MUT_Rv1484_c.-777C>T,MUT_Rv1484_p.Ile194Thr,MUT_Rv1484_p.Ile21Val,MUT_Rv1484_p.Ser94Ala,MUT_Rv2043c_p.Leu120Pro,MUT_Rv2043c_p.Val125Gly,MUT_Rv2416c_c.-10G>A,MUT_Rv2764c_transcript_ablation,MUT_Rv3794_c.-16C>T,MUT_Rv3795_p.Met306Val,MUT_Rv3795_p.Met423Thr,MUT_Rv3919c_p.Ala80Pro,drtype
+11,11,1,1,0,1,0,1,1,0,0,0,1,0,1,1,1,1,1,Pre-XDR-TB
+10,10,1,1,0,1,0,1,1,0,0,0,1,0,0,1,1,1,1,Pre-XDR-TB
+2,2,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,MDR-TB
+8,8,0,0,1,1,1,1,0,0,1,1,0,1,0,0,1,0,0,Pre-XDR-TB
+7,7,0,0,0,1,0,1,1,0,0,0,1,0,0,0,1,1,1,MDR-TB
+7,7,0,0,0,1,0,1,1,0,0,0,1,0,0,0,1,1,1,MDR-TB
+7,7,0,0,0,1,0,1,1,0,0,0,1,0,0,0,1,1,1,MDR-TB
+7,7,0,0,0,1,0,1,1,0,0,0,1,0,0,0,1,1,1,MDR-TB
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Susceptible
+7,7,0,0,0,1,0,1,1,0,0,0,1,0,0,0,1,1,1,MDR-TB

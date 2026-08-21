@@ -1,0 +1,11 @@
+sample_id,drtype,predicted_drtype
+sample1,Pre-XDR-TB,Pre-XDR-TB
+sample10,Pre-XDR-TB,Pre-XDR-TB
+sample2,MDR-TB,Susceptible
+sample3,Pre-XDR-TB,MDR-TB
+sample4,MDR-TB,MDR-TB
+sample5,MDR-TB,MDR-TB
+sample6,MDR-TB,MDR-TB
+sample7,MDR-TB,MDR-TB
+sample8,Susceptible,MDR-TB
+sample9,MDR-TB,MDR-TB

@@ -6,7 +6,7 @@ GenoTB-Care is a research prototype for analyzing *Mycobacterium tuberculosis* w
 
 The system combines TB-Profiler for genomic variant and resistance interpretation with a custom feature-engineering and machine-learning layer.
 
----
+\---
 
 ## 🚀 Project Pipeline
 
@@ -39,4 +39,25 @@ Resistance-associated Mutations
  Resistance Prediction
            │
            ▼
- Streamlit Dashboard
+ Streamlit Dashboard 
+
+\## Data
+
+
+
+Public Mycobacterium tuberculosis WGS datasets were used for
+
+prototype development.
+
+
+
+The raw FASTQ files are not included in this repository because
+
+of their large size.
+
+
+
+Users can obtain the corresponding public sequencing data using
+
+the accession IDs documented in this project.
+

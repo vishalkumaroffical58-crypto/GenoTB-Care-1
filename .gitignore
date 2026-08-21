@@ -36,3 +36,16 @@ __pycache__/
 results/feature_table.csv
 !results/
 !results/feature_table.csv
+# TB-Profiler per-sample reports
+results/*.json
+results/*.txt
+
+# Temporary/local ML files
+model/*.pkl
+model/*.joblib
+results/feature_table.csv
+results/ml_dataset.csv
+results/ml_predictions.csv
+results/feature_importance.csv
+results/confusion_matrix.png
+results/feature_importance.png

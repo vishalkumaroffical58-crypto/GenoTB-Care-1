@@ -3,9 +3,10 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 
+
 # ============================================================
 # GenoTB-Care
-# TB Drug Resistance Prediction Dashboard
+# TB WGS + TB-Profiler + ML Dashboard
 # ============================================================
 
 st.set_page_config(
@@ -14,6 +15,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
 
 # ============================================================
 # PATHS
@@ -25,33 +27,53 @@ PROJECT_DIR = os.path.abspath(
 
 RESULTS_DIR = os.path.join(PROJECT_DIR, "results")
 
+
+# TB-Profiler datasets
+SAMPLE_SUMMARY = os.path.join(
+    RESULTS_DIR,
+    "sample_summary.csv"
+)
+
+COMBINED_RESULTS = os.path.join(
+    RESULTS_DIR,
+    "combined_results.csv"
+)
+
+
+# Existing ML datasets
 FEATURE_TABLE = os.path.join(
-    RESULTS_DIR, "feature_table.csv"
+    RESULTS_DIR,
+    "feature_table.csv"
 )
 
 ML_DATASET = os.path.join(
-    RESULTS_DIR, "ml_dataset.csv"
+    RESULTS_DIR,
+    "ml_dataset.csv"
 )
 
 ML_PREDICTIONS = os.path.join(
-    RESULTS_DIR, "ml_predictions.csv"
+    RESULTS_DIR,
+    "ml_predictions.csv"
 )
 
 FEATURE_IMPORTANCE = os.path.join(
-    RESULTS_DIR, "feature_importance.csv"
+    RESULTS_DIR,
+    "feature_importance.csv"
 )
 
 FEATURE_IMPORTANCE_PNG = os.path.join(
-    RESULTS_DIR, "feature_importance.png"
+    RESULTS_DIR,
+    "feature_importance.png"
 )
 
 CONFUSION_MATRIX_PNG = os.path.join(
-    RESULTS_DIR, "confusion_matrix.png"
+    RESULTS_DIR,
+    "confusion_matrix.png"
 )
 
 
 # ============================================================
-# CUSTOM CSS
+# CSS
 # ============================================================
 
 st.markdown(
@@ -70,12 +92,6 @@ st.markdown(
         margin-bottom: 25px;
     }
 
-    .metric-card {
-        padding: 15px;
-        border-radius: 10px;
-        border: 1px solid #333333;
-    }
-
     </style>
     """,
     unsafe_allow_html=True
@@ -83,7 +99,7 @@ st.markdown(
 
 
 # ============================================================
-# LOAD DATA
+# DATA LOADER
 # ============================================================
 
 @st.cache_data
@@ -105,6 +121,12 @@ def load_csv(path):
     return None
 
 
+# TB-Profiler data
+sample_df = load_csv(SAMPLE_SUMMARY)
+results_df = load_csv(COMBINED_RESULTS)
+
+
+# Existing ML data
 feature_df = load_csv(FEATURE_TABLE)
 ml_df = load_csv(ML_DATASET)
 prediction_df = load_csv(ML_PREDICTIONS)
@@ -123,15 +145,17 @@ st.sidebar.markdown(
 
     Whole-genome sequencing based:
 
+    - TB-Profiler
     - Mutation analysis
     - Drug resistance profiling
-    - Feature engineering
+    - Lineage analysis
+    - Quality control
     - Machine learning
-    - Resistance prediction
     """
 )
 
 st.sidebar.divider()
+
 
 page = st.sidebar.radio(
     "Navigation",
@@ -140,6 +164,8 @@ page = st.sidebar.radio(
         "🧬 Sample Analysis",
         "💊 Drug Resistance",
         "🔬 Mutations",
+        "🧬 Lineage Analysis",
+        "🧪 Quality Control",
         "🤖 ML Prediction",
         "📊 Feature Importance",
         "🎯 Model Performance",
@@ -147,10 +173,11 @@ page = st.sidebar.radio(
     ]
 )
 
+
 st.sidebar.divider()
 
 st.sidebar.caption(
-    "GenoTB-Care | TB WGS + Machine Learning"
+    "GenoTB-Care | TB WGS + TB-Profiler + ML"
 )
 
 
@@ -172,7 +199,7 @@ st.markdown(
 
 
 # ============================================================
-# DASHBOARD HOME
+# DASHBOARD
 # ============================================================
 
 if page == "🏠 Dashboard":
@@ -182,48 +209,47 @@ if page == "🏠 Dashboard":
     st.markdown(
         """
         **GenoTB-Care** is a computational prototype for
-        analyzing *Mycobacterium tuberculosis* whole-genome
-        sequencing data and predicting drug resistance.
+        *Mycobacterium tuberculosis* whole-genome sequencing
+        analysis.
 
-        The workflow integrates:
+        **Workflow**
 
-        **WGS → TB-Profiler → Mutation Detection → Feature Engineering
-        → Machine Learning → Resistance Prediction**
+        WGS → TB-Profiler → Variant Detection →
+        Drug Resistance Analysis → Lineage Analysis →
+        QC → Machine Learning
         """
     )
 
     st.divider()
 
-    # --------------------------------------------------------
-    # METRICS
-    # --------------------------------------------------------
+    if sample_df is not None:
 
-    if feature_df is not None:
+        total_samples = len(sample_df)
 
-        total_samples = len(feature_df)
+        qc_pass = (
+            sample_df["Status"] == "PASS"
+        ).sum()
 
-        if "mutation_count" in feature_df.columns:
-            total_mutations = feature_df[
-                "mutation_count"
-            ].sum()
-        else:
-            total_mutations = 0
+        qc_fail = (
+            sample_df["Status"] == "QC FAIL"
+        ).sum()
 
-        if "total_dr_variants" in feature_df.columns:
-            total_dr = feature_df[
-                "total_dr_variants"
-            ].sum()
-        else:
-            total_dr = 0
+        resistance_samples = (
+            sample_df["Resistance_Drug_Count"] > 0
+        ).sum()
 
-        total_features = len(feature_df.columns)
+        total_mutations = (
+            sample_df["Resistance_Mutation_Count"].sum()
+        )
 
     else:
 
         total_samples = 0
+        qc_pass = 0
+        qc_fail = 0
+        resistance_samples = 0
         total_mutations = 0
-        total_dr = 0
-        total_features = 0
+
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -233,19 +259,20 @@ if page == "🏠 Dashboard":
     )
 
     col2.metric(
-        "Total Mutations",
-        int(total_mutations)
+        "QC PASS",
+        qc_pass
     )
 
     col3.metric(
-        "Drug Resistance Variants",
-        int(total_dr)
+        "QC FAIL",
+        qc_fail
     )
 
     col4.metric(
-        "Features",
-        total_features
+        "Resistance Samples",
+        resistance_samples
     )
+
 
     st.divider()
 
@@ -255,24 +282,26 @@ if page == "🏠 Dashboard":
 
     st.subheader("Sample Summary")
 
-    if feature_df is not None:
+    if sample_df is not None:
 
         display_columns = [
-            "sample_id",
-            "main_lineage",
-            "sub_lineage",
-            "drtype",
-            "total_dr_variants",
-            "mutation_count"
+            "Sample_ID",
+            "Status",
+            "Lineage",
+            "Family",
+            "Resistance_Drug_Count",
+            "Resistance_Mutation_Count",
+            "Percent_Reads_Mapped",
+            "Target_Median_Depth"
         ]
 
         display_columns = [
             c for c in display_columns
-            if c in feature_df.columns
+            if c in sample_df.columns
         ]
 
         st.dataframe(
-            feature_df[display_columns],
+            sample_df[display_columns],
             use_container_width=True,
             hide_index=True
         )
@@ -280,7 +309,7 @@ if page == "🏠 Dashboard":
     else:
 
         st.warning(
-            "feature_table.csv was not found."
+            "sample_summary.csv not found."
         )
 
 
@@ -290,90 +319,190 @@ if page == "🏠 Dashboard":
 
 elif page == "🧬 Sample Analysis":
 
-    st.header("🧬 Individual TB Sample Analysis")
+    st.header("🧬 Sample Analysis")
 
-    if feature_df is None:
+    if sample_df is None:
 
         st.error(
-            "results/feature_table.csv not found."
+            "sample_summary.csv not found."
         )
 
     else:
 
-        if "sample_id" not in feature_df.columns:
+        sample_list = sorted(
+            sample_df["Sample_ID"].dropna().unique()
+        )
 
-            st.error(
-                "sample_id column not found."
+        selected_sample = st.selectbox(
+            "Select Sample",
+            sample_list
+        )
+
+        sample_info = sample_df[
+            sample_df["Sample_ID"] == selected_sample
+        ]
+
+        if len(sample_info) > 0:
+
+            row = sample_info.iloc[0]
+
+            st.subheader(
+                f"Sample: {selected_sample}"
             )
 
-        else:
+            col1, col2, col3, col4 = st.columns(4)
 
-            sample_list = feature_df[
-                "sample_id"
-            ].astype(str).tolist()
-
-            selected_sample = st.selectbox(
-                "Select TB Sample",
-                sample_list
+            col1.metric(
+                "QC Status",
+                row.get("Status", "N/A")
             )
 
-            sample = feature_df[
-                feature_df["sample_id"].astype(str)
-                == selected_sample
-            ]
+            col2.metric(
+                "Lineage",
+                row.get("Lineage", "N/A")
+            )
 
-            if len(sample) > 0:
+            col3.metric(
+                "Mapped Reads",
+                row.get("Reads_Mapped", "N/A")
+            )
 
-                sample = sample.iloc[0]
+            col4.metric(
+                "Mapping %",
+                row.get("Percent_Reads_Mapped", "N/A")
+            )
 
-                st.subheader(
-                    f"Sample: {selected_sample}"
+
+            st.divider()
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+
+                st.subheader("Lineage")
+
+                st.write(
+                    "Lineage:",
+                    row.get("Lineage", "Not determined")
                 )
 
-                col1, col2, col3, col4 = st.columns(4)
+                st.write(
+                    "Family:",
+                    row.get("Family", "Not determined")
+                )
 
-                if "main_lineage" in sample:
-                    col1.metric(
-                        "Lineage",
-                        sample["main_lineage"]
-                    )
+                st.write(
+                    "Lineage Fraction:",
+                    row.get("Lineage_Fraction", "N/A")
+                )
 
-                if "sub_lineage" in sample:
-                    col2.metric(
-                        "Sub-lineage",
-                        sample["sub_lineage"]
-                    )
+                st.write(
+                    "Spoligotype:",
+                    row.get("Spoligotype", "N/A")
+                )
 
-                if "drtype" in sample:
-                    col3.metric(
-                        "Drug Resistance Type",
-                        sample["drtype"]
-                    )
 
-                if "mutation_count" in sample:
-                    col4.metric(
-                        "Mutation Count",
-                        sample["mutation_count"]
+            with col2:
+
+                st.subheader("QC")
+
+                st.write(
+                    "Status:",
+                    row.get("Status", "N/A")
+                )
+
+                st.write(
+                    "Reason:",
+                    row.get("QC_Reason", "")
+                )
+
+                st.write(
+                    "Target Median Depth:",
+                    row.get("Target_Median_Depth", "N/A")
+                )
+
+                st.write(
+                    "Genome Median Depth:",
+                    row.get("Genome_Median_Depth", "N/A")
+                )
+
+
+            st.divider()
+
+            st.subheader(
+                "Genotypic Resistance-Associated Drugs"
+            )
+
+            drugs = row.get(
+                "Resistance_Drugs",
+                ""
+            )
+
+            if pd.isna(drugs) or drugs == "":
+
+                st.info(
+                    "No resistance-associated drug findings."
+                )
+
+            else:
+
+                st.write(
+                    str(drugs).replace(
+                        ";",
+                        " • "
                     )
+                )
+
+
+            # ------------------------------------------------
+            # MUTATIONS FOR SELECTED SAMPLE
+            # ------------------------------------------------
+
+            if results_df is not None:
+
+                sample_results = results_df[
+                    results_df["Sample_ID"] == selected_sample
+                ]
 
                 st.divider()
 
                 st.subheader(
-                    "Sample Genomic Features"
+                    "Resistance-Associated Mutations"
                 )
 
-                sample_table = pd.DataFrame(
-                    {
-                        "Feature": sample.index,
-                        "Value": sample.values
-                    }
-                )
+                mutation_columns = [
+                    "Gene",
+                    "Position",
+                    "Reference",
+                    "Alternative",
+                    "Frequency",
+                    "Protein_Change",
+                    "Nucleotide_Change",
+                    "Drug",
+                    "Resistance_Confidence",
+                    "Resistance_Source"
+                ]
 
-                st.dataframe(
-                    sample_table,
-                    use_container_width=True,
-                    hide_index=True
-                )
+                mutation_columns = [
+                    c for c in mutation_columns
+                    if c in sample_results.columns
+                ]
+
+                if len(sample_results) > 0:
+
+                    st.dataframe(
+                        sample_results[
+                            mutation_columns
+                        ],
+                        use_container_width=True,
+                        hide_index=True
+                    )
+
+                else:
+
+                    st.info(
+                        "No resistance-associated variants reported."
+                    )
 
 
 # ============================================================
@@ -384,127 +513,69 @@ elif page == "💊 Drug Resistance":
 
     st.header("💊 Drug Resistance Analysis")
 
-    if feature_df is None:
+    if results_df is None:
 
         st.error(
-            "Feature table not found."
+            "combined_results.csv not found."
         )
 
     else:
 
-        if "drtype" in feature_df.columns:
+        resistance_df = results_df[
+            results_df["Drug"].notna()
+        ].copy()
 
-            st.subheader(
-                "Resistance Classification"
-            )
-
-            resistance_counts = (
-                feature_df["drtype"]
-                .fillna("Unknown")
-                .value_counts()
-            )
-
-            st.bar_chart(
-                resistance_counts
-            )
-
-            st.dataframe(
-                resistance_counts
-                .reset_index()
-                .rename(
-                    columns={
-                        "index": "Resistance Type",
-                        "drtype": "Samples"
-                    }
-                ),
-                use_container_width=True,
-                hide_index=True
-            )
-
-        if "total_dr_variants" in feature_df.columns:
-
-            st.subheader(
-                "Drug Resistance Variants per Sample"
-            )
-
-            chart_df = feature_df[
-                ["sample_id", "total_dr_variants"]
-            ].copy()
-
-            chart_df = chart_df.set_index(
-                "sample_id"
-            )
-
-            st.bar_chart(
-                chart_df
-            )
-
-        # ----------------------------------------------------
-        # DRUG FEATURE COLUMNS
-        # ----------------------------------------------------
-
-        drug_columns = [
-            c for c in feature_df.columns
-            if c.startswith("drug_")
+        resistance_df = resistance_df[
+            resistance_df["Drug"] != ""
         ]
 
-        if drug_columns:
+        st.metric(
+            "Resistance-Associated Records",
+            len(resistance_df)
+        )
 
-            st.subheader(
-                "Drug Resistance Feature Matrix"
+        st.divider()
+
+        # Drug counts
+
+        drug_counts = (
+            resistance_df
+            .groupby("Drug")["Sample_ID"]
+            .nunique()
+            .sort_values(
+                ascending=False
             )
+        )
 
-            drug_df = feature_df[
-                ["sample_id"] + drug_columns
-            ].copy()
+        st.subheader(
+            "Samples by Drug"
+        )
 
-            st.dataframe(
-                drug_df,
-                use_container_width=True,
-                hide_index=True
-            )
+        st.bar_chart(
+            drug_counts
+        )
 
-            st.subheader(
-                "Drug Resistance Heatmap"
-            )
+        st.divider()
 
-            heatmap_df = drug_df.set_index(
-                "sample_id"
-            )
+        # Sample × Drug matrix
 
-            fig, ax = plt.subplots(
-                figsize=(12, 5)
-            )
+        st.subheader(
+            "Sample × Drug Matrix"
+        )
 
-            ax.imshow(
-                heatmap_df.values,
-                aspect="auto"
-            )
+        matrix = pd.crosstab(
+            resistance_df["Sample_ID"],
+            resistance_df["Drug"]
+        )
 
-            ax.set_xticks(
-                range(len(heatmap_df.columns))
-            )
+        matrix = (
+            matrix > 0
+        ).astype(int)
 
-            ax.set_xticklabels(
-                heatmap_df.columns,
-                rotation=90
-            )
-
-            ax.set_yticks(
-                range(len(heatmap_df.index))
-            )
-
-            ax.set_yticklabels(
-                heatmap_df.index
-            )
-
-            ax.set_title(
-                "Drug Resistance Feature Matrix"
-            )
-
-            plt.tight_layout()
-
-            st.pyplot(fig)
+        st.dataframe(
+            matrix,
+            use_container_width=True
+        )
 
 
 # ============================================================
@@ -513,83 +584,163 @@ elif page == "💊 Drug Resistance":
 
 elif page == "🔬 Mutations":
 
-    st.header("🔬 TB Mutation Analysis")
+    st.header("🔬 Mutation Analysis")
 
-    if feature_df is None:
+    if results_df is None:
 
         st.error(
-            "Feature table not found."
+            "combined_results.csv not found."
         )
 
     else:
 
-        # ----------------------------------------------------
-        # MUTATION COUNT
-        # ----------------------------------------------------
+        mutation_columns = [
+            "Sample_ID",
+            "Gene",
+            "Position",
+            "Reference",
+            "Alternative",
+            "Frequency",
+            "Protein_Change",
+            "Nucleotide_Change",
+            "Drug",
+            "Resistance_Confidence",
+            "Resistance_Source",
+            "Resistance_Comment"
+        ]
 
-        if "mutation_count" in feature_df.columns:
+        mutation_columns = [
+            c for c in mutation_columns
+            if c in results_df.columns
+        ]
 
-            st.subheader(
-                "Mutation Count by Sample"
-            )
+        mutation_df = results_df[
+            mutation_columns
+        ].copy()
 
-            mutation_df = feature_df[
-                ["sample_id", "mutation_count"]
-            ].copy()
+        st.metric(
+            "Resistance-Associated Mutation Records",
+            len(mutation_df)
+        )
 
-            mutation_df = mutation_df.set_index(
-                "sample_id"
-            )
+        st.dataframe(
+            mutation_df,
+            use_container_width=True,
+            hide_index=True
+        )
 
-            st.bar_chart(
-                mutation_df
-            )
 
-        # ----------------------------------------------------
-        # MUTATION STRINGS
-        # ----------------------------------------------------
+# ============================================================
+# LINEAGE
+# ============================================================
 
-        if "mutations" in feature_df.columns:
+elif page == "🧬 Lineage Analysis":
 
-            st.subheader(
-                "Detected Mutations"
-            )
+    st.header("🧬 Lineage Analysis")
 
-            mutation_table = feature_df[
+    if sample_df is None:
+
+        st.error(
+            "sample_summary.csv not found."
+        )
+
+    else:
+
+        lineage_df = sample_df.copy()
+
+        lineage_df["Lineage"] = (
+            lineage_df["Lineage"]
+            .fillna("Not determined")
+            .replace("", "Not determined")
+        )
+
+        lineage_counts = (
+            lineage_df["Lineage"]
+            .value_counts()
+        )
+
+        st.subheader(
+            "Lineage Distribution"
+        )
+
+        st.bar_chart(
+            lineage_counts
+        )
+
+        st.divider()
+
+        st.dataframe(
+            lineage_df[
                 [
-                    "sample_id",
-                    "mutations"
+                    "Sample_ID",
+                    "Lineage",
+                    "Family",
+                    "Lineage_Fraction"
                 ]
-            ].copy()
+            ],
+            use_container_width=True,
+            hide_index=True
+        )
 
-            st.dataframe(
-                mutation_table,
-                use_container_width=True,
-                hide_index=True
-            )
 
-        # ----------------------------------------------------
-        # DR VARIANTS
-        # ----------------------------------------------------
+# ============================================================
+# QUALITY CONTROL
+# ============================================================
 
-        if "total_dr_variants" in feature_df.columns:
+elif page == "🧪 Quality Control":
 
-            st.subheader(
-                "Drug-Resistance Variant Count"
-            )
+    st.header("🧪 Sequencing Quality Control")
 
-            dr_df = feature_df[
-                [
-                    "sample_id",
-                    "total_dr_variants"
-                ]
-            ].copy()
+    if sample_df is None:
 
-            st.dataframe(
-                dr_df,
-                use_container_width=True,
-                hide_index=True
-            )
+        st.error(
+            "sample_summary.csv not found."
+        )
+
+    else:
+
+        qc_pass = (
+            sample_df["Status"] == "PASS"
+        ).sum()
+
+        qc_fail = (
+            sample_df["Status"] == "QC FAIL"
+        ).sum()
+
+        col1, col2 = st.columns(2)
+
+        col1.metric(
+            "QC PASS",
+            qc_pass
+        )
+
+        col2.metric(
+            "QC FAIL",
+            qc_fail
+        )
+
+        st.divider()
+
+        qc_columns = [
+            "Sample_ID",
+            "Status",
+            "QC_Reason",
+            "Percent_Reads_Mapped",
+            "Reads_Mapped",
+            "Target_Median_Depth",
+            "Genome_Median_Depth"
+        ]
+
+        qc_columns = [
+            c for c in qc_columns
+            if c in sample_df.columns
+        ]
+
+        st.dataframe(
+            sample_df[qc_columns],
+            use_container_width=True,
+            hide_index=True
+        )
 
 
 # ============================================================
@@ -598,252 +749,7 @@ elif page == "🔬 Mutations":
 
 elif page == "🤖 ML Prediction":
 
-    st.header(
-        "🤖 Machine Learning Resistance Prediction"
-    )
-
-    st.markdown(
-        """
-        This section displays the machine-learning
-        results generated from the GenoTB-Care feature
-        engineering pipeline.
-        """
-    )
-
-    if prediction_df is None:
-
-        st.warning(
-            "results/ml_predictions.csv was not found."
-        )
-
-        st.info(
-            "Run the ML pipeline first."
-        )
-
-    else:
-
-        st.subheader(
-            "Prediction Results"
-        )
-
-        st.dataframe(
-            prediction_df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-        # ----------------------------------------------------
-        # DETECT PREDICTION COLUMN
-        # ----------------------------------------------------
-
-        possible_prediction_columns = [
-            "prediction",
-            "predicted",
-            "predicted_class",
-            "prediction_label",
-            "y_pred"
-        ]
-
-        prediction_column = None
-
-        for col in possible_prediction_columns:
-
-            if col in prediction_df.columns:
-
-                prediction_column = col
-                break
-
-        if prediction_column:
-
-            st.subheader(
-                "Prediction Distribution"
-            )
-
-            counts = (
-                prediction_df[
-                    prediction_column
-                ]
-                .astype(str)
-                .value_counts()
-            )
-
-            st.bar_chart(
-                counts
-            )
-
-        # ----------------------------------------------------
-        # PROBABILITY
-        # ----------------------------------------------------
-
-        probability_columns = [
-            c for c in prediction_df.columns
-            if "prob" in c.lower()
-        ]
-
-        if probability_columns:
-
-            st.subheader(
-                "Prediction Probabilities"
-            )
-
-            st.dataframe(
-                prediction_df[
-                    probability_columns
-                ],
-                use_container_width=True,
-                hide_index=True
-            )
-
-
-# ============================================================
-# FEATURE IMPORTANCE
-# ============================================================
-
-elif page == "📊 Feature Importance":
-
-    st.header(
-        "📊 ML Feature Importance"
-    )
-
-    if importance_df is not None:
-
-        st.subheader(
-            "Feature Importance Table"
-        )
-
-        st.dataframe(
-            importance_df,
-            use_container_width=True,
-            hide_index=True
-        )
-
-        # Automatically detect feature and importance columns
-
-        numeric_columns = (
-            importance_df
-            .select_dtypes(
-                include="number"
-            )
-            .columns
-            .tolist()
-        )
-
-        if len(numeric_columns) > 0:
-
-            importance_column = numeric_columns[-1]
-
-            st.subheader(
-                "Feature Importance Plot"
-            )
-
-            plot_df = importance_df.copy()
-
-            feature_column = None
-
-            for c in [
-                "feature",
-                "Feature",
-                "features",
-                "Feature_Name"
-            ]:
-
-                if c in plot_df.columns:
-
-                    feature_column = c
-                    break
-
-            if feature_column:
-
-                plot_df = plot_df.sort_values(
-                    importance_column,
-                    ascending=True
-                )
-
-                fig, ax = plt.subplots(
-                    figsize=(10, 7)
-                )
-
-                ax.barh(
-                    plot_df[
-                        feature_column
-                    ].astype(str),
-                    plot_df[
-                        importance_column
-                    ]
-                )
-
-                ax.set_xlabel(
-                    "Importance"
-                )
-
-                ax.set_ylabel(
-                    "Feature"
-                )
-
-                ax.set_title(
-                    "Random Forest Feature Importance"
-                )
-
-                plt.tight_layout()
-
-                st.pyplot(fig)
-
-    else:
-
-        st.warning(
-            "feature_importance.csv was not found."
-        )
-
-    # Existing PNG
-
-    if os.path.exists(
-        FEATURE_IMPORTANCE_PNG
-    ):
-
-        st.subheader(
-            "Saved Feature Importance Figure"
-        )
-
-        st.image(
-            FEATURE_IMPORTANCE_PNG,
-            use_container_width=True
-        )
-
-
-# ============================================================
-# MODEL PERFORMANCE
-# ============================================================
-
-elif page == "🎯 Model Performance":
-
-    st.header(
-        "🎯 Machine Learning Model Performance"
-    )
-
-    if os.path.exists(
-        CONFUSION_MATRIX_PNG
-    ):
-
-        st.subheader(
-            "Confusion Matrix"
-        )
-
-        st.image(
-            CONFUSION_MATRIX_PNG,
-            use_container_width=True
-        )
-
-    else:
-
-        st.warning(
-            "confusion_matrix.png was not found."
-        )
-
-    st.divider()
-
-    st.subheader(
-        "Prediction Dataset"
-    )
+    st.header("🤖 Machine Learning Prediction")
 
     if prediction_df is not None:
 
@@ -856,32 +762,75 @@ elif page == "🎯 Model Performance":
     else:
 
         st.info(
-            "ML prediction file is not available."
+            "ML predictions are not available yet."
         )
 
 
 # ============================================================
-# COMPLETE FEATURE TABLE
+# FEATURE IMPORTANCE
 # ============================================================
 
-elif page == "📋 Feature Table":
+elif page == "📊 Feature Importance":
 
-    st.header(
-        "📋 Complete GenoTB-Care Feature Table"
-    )
+    st.header("📊 Feature Importance")
 
-    if feature_df is None:
+    if importance_df is not None:
 
-        st.error(
-            "results/feature_table.csv was not found."
+        st.dataframe(
+            importance_df,
+            use_container_width=True,
+            hide_index=True
+        )
+
+    elif os.path.exists(
+        FEATURE_IMPORTANCE_PNG
+    ):
+
+        st.image(
+            FEATURE_IMPORTANCE_PNG,
+            use_container_width=True
         )
 
     else:
 
-        st.success(
-            f"{len(feature_df)} samples × "
-            f"{len(feature_df.columns)} features loaded"
+        st.info(
+            "Feature importance results are not available."
         )
+
+
+# ============================================================
+# MODEL PERFORMANCE
+# ============================================================
+
+elif page == "🎯 Model Performance":
+
+    st.header("🎯 Model Performance")
+
+    if os.path.exists(
+        CONFUSION_MATRIX_PNG
+    ):
+
+        st.image(
+            CONFUSION_MATRIX_PNG,
+            use_container_width=True
+        )
+
+    else:
+
+        st.info(
+            "Model performance results are not available."
+        )
+
+
+# ============================================================
+# FEATURE TABLE
+# ============================================================
+
+elif page == "📋 Feature Table":
+
+    st.header("📋 Feature Table")
+
+    if feature_df is not None:
 
         st.dataframe(
             feature_df,
@@ -889,19 +838,10 @@ elif page == "📋 Feature Table":
             hide_index=True
         )
 
-        # ----------------------------------------------------
-        # DOWNLOAD
-        # ----------------------------------------------------
+    else:
 
-        csv_data = feature_df.to_csv(
-            index=False
-        )
-
-        st.download_button(
-            label="⬇️ Download Feature Table",
-            data=csv_data,
-            file_name="genotb_feature_table.csv",
-            mime="text/csv"
+        st.info(
+            "Feature table is not available."
         )
 
 
@@ -912,6 +852,5 @@ elif page == "📋 Feature Table":
 st.divider()
 
 st.caption(
-    "GenoTB-Care | WGS-based TB drug resistance analysis "
-    "and machine learning prototype"
+    "GenoTB-Care | TB WGS + TB-Profiler + Genotypic Resistance Analysis"
 )

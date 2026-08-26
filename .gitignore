@@ -1,27 +1,53 @@
-# WGS sequencing data
 data/
 *.fastq
 *.fastq.gz
 *.fq
 *.fq.gz
 
+*.bam
+*.bam.bai
+*.sam
+
+*.vcf
+*.vcf.gz
+*.bcf
+
+*.log
+wget-log*
+*.errlog.txt
+
+Miniconda3-*.sh
+
+__pycache__/
+*.pyc
+
+.venv/
+venv/
+
+.ipynb_checkpoints/
+
+.DS_Store
+Thumbs.db
+# Sequencing data
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+
 # Alignment files
-bam/
 *.bam
 *.bai
 *.sam
 
 # Variant files
-vcf/
 *.vcf
 *.vcf.gz
 *.bcf
-*.bcf.gz
+*.tbi
 
-# Logs
-wget-log*
+# Temporary files
+*.tmp
 *.log
-*.errlog.txt
 
 # Conda installer
 Miniconda3-*.sh
@@ -30,22 +56,5 @@ Miniconda3-*.sh
 __pycache__/
 *.pyc
 
-# Local ML models
-*.pkl
-*.joblib
-results/feature_table.csv
-!results/
-!results/feature_table.csv
-# TB-Profiler per-sample reports
-results/*.json
-results/*.txt
-
-# Temporary/local ML files
-model/*.pkl
-model/*.joblib
-results/feature_table.csv
-results/ml_dataset.csv
-results/ml_predictions.csv
-results/feature_importance.csv
-results/confusion_matrix.png
-results/feature_importance.png
+# Streamlit
+.streamlit/secrets.toml

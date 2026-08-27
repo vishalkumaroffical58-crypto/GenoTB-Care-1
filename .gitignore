@@ -58,3 +58,21 @@ __pycache__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Large extensionless sequencing/intermediate files
+acd202f5-58a4-4b53-abf0-c77a38da0162_1P
+acd202f5-58a4-4b53-abf0-c77a38da0162_2P
+acd202f5-58a4-4b53-abf0-c77a38da0162_TU
+
+# fasterq-dump temporary files
+fasterq.tmp.*/
+fasterq.tmp.*
+
+# Old dashboard versions
+dashboard/app_backup.py
+dashboard/app_before_tbprofiler_dashboard.py
+dashboard/app.yp/
+
+# Download metadata / local tools
+*_urls.txt
+enaBrowserTools/

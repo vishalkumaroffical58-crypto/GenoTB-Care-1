@@ -76,3 +76,5 @@ dashboard/app.yp/
 # Download metadata / local tools
 *_urls.txt
 enaBrowserTools/
+
+dashboard/results/
